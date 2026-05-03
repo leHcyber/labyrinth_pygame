@@ -1,48 +1,52 @@
-# Mon jeuuu
+# 🎮 Mon jeuuu
 
-ptit jeu par Hachoum full python avec pygame
+Petit jeu par Hachoum, full Python avec Pygame
 
----------------------------------------------------
+---
 
-## Prérequis
+## 📌 Prérequis
 
-Python 3.10 ou +
-pip
+- Python 3.10 ou +
+- pip installé
 
----------------------------------------------------
-1)
+---
 
-met toi dans le fichier du jeu au cmd :
+## 📁 Se placer dans le dossier du jeu
 
-cd /home/ton blaze/pygame_projet/
-ou alors un autre emplacent si tu la mis autre part
+Dans le terminal (cmd) :
 
----------------------------------------------------
-2)
+cd /home/ton_blaze/pygame_projet/
 
-## Création de l’environnement virtuel pour lancer le jeu
+👉 (ou l’emplacement où tu as mis le projet)
 
-faut créer un environnement isolé pour éviter les conflits de dépendances :
+---
+
+## 🧪 Création de l’environnement virtuel
+
+On crée un environnement isolé pour éviter les conflits de dépendances :
 
 python3 -m venv menv
 source menv/bin/activate
 
----------------------------------------------------
-3)
-## installer le requirements (ya juste pygame dedans mdrr)
+---
+
+## 📦 Installation des dépendances
+
+(y'a que pygame mdrr)
 
 pip install -r requirements.txt
 
---------------------------------------------------
+---
 
-4)
-## lancer le jeu
+## 🚀 Lancer le jeu
 
-tu fait juste :
 python main.py
 
---------------------------------------------------
+---
 
-j'espere que t'aimera mdrr
+## 🎯 Conclusion
+
+J’espère que tu vas kiffer mdrr  
 Profite bien !!
-je vais continuer de l'ameliorer est faire un mode online bientot insha'allah :)
+
+Je vais continuer à améliorer le jeu et ajouter un mode online bientôt ⚡
