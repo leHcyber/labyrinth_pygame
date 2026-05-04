@@ -1,27 +1,27 @@
-# 🎮 Mon jeuuu
+#  Mon premier projet (:
 
-Petit jeu par Hachoum, full Python avec Pygame
+Ptit premier jeu par LeH, full Python avec Pygame
 
 ---
 
-## 📌 Prérequis
+##  Prérequis
 
 - Python 3.10 ou +
 - pip installé
 
 ---
 
-## 📁 Se placer dans le dossier du jeu
+##  Se placer dans le dossier du jeu
 
 Dans le terminal (cmd) :
 
 cd /home/ton_blaze/pygame_projet/
 
-👉 (ou l’emplacement où tu as mis le projet)
+(ou l’emplacement où tu as mis le projet)
 
 ---
 
-## 🧪 Création de l’environnement virtuel
+##  Création de l’environnement virtuel
 
 On crée un environnement isolé pour éviter les conflits de dépendances :
 
@@ -30,23 +30,25 @@ source menv/bin/activate
 
 ---
 
-## 📦 Installation des dépendances
+##  Installation des dépendances
 
 (y'a que pygame mdrr)
 
-pip install -r requirements.txt
+pip install pygame
+
+(DANS L'ENVIRONNEMENT)
 
 ---
 
-## 🚀 Lancer le jeu
+##  Lancer le jeu
 
 python main.py
 
 ---
 
-## 🎯 Conclusion
+##  Conclusion
 
-J’espère que tu vas kiffer mdrr  
-Profite bien !!
+J’espère que vous allez kiffer mdrr  
+Profitez bien !!
 
-Je vais continuer à améliorer le jeu et ajouter un mode online bientôt ⚡
+Je vais continuer à améliorer le jeu et ajouter un mode online bientôt...
