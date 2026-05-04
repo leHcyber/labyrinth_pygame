@@ -11,6 +11,16 @@ Ptit premier jeu par LeH, full Python avec Pygame
 
 ---
 
+## cloner le projet
+
+dans le terminal :
+
+git clone https://github.com/leHcyber/labyrinth_pygame.git
+
+et vous aurez le fichier du jeu
+
+---
+
 ##  Se placer dans le dossier du jeu
 
 Dans le terminal (cmd) :
