@@ -9,6 +9,8 @@ import os
 from game.map import Map
 import copy
 
+import math
+
 from core.enemy import EnemyFactory
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,6 +25,11 @@ class Game:
 
         self.screen = screen
         self.level_id = level.get("id")
+
+        self.move_speed = 0.05
+
+        self.offset_x = 0
+        self.offset_y = 0
 
         self.paused = False
         self.exit_to_menu = False
@@ -206,9 +213,14 @@ class Game:
     #-------------------------
 
     def update_camera(self):
-        self.camera_x = self.player.x - self.view_width // 2
-        self.camera_y = self.player.y - self.view_height // 2
 
+        target_x = self.player.x - self.view_height / 2.5
+        target_y = self.player.y - self.view_width / 2.5
+
+        smooth = 0.08
+
+        self.camera_x += (target_x - self.camera_x) * smooth
+        self.camera_y += (target_y - self.camera_y) * smooth
     # -------------------------
 
     def handle_input(self, event):
@@ -264,35 +276,138 @@ class Game:
             self.set_message(msg)
             return
 
+    #--------------------------
 
-        dx, dy = 0, 0
+    def set_message(self, text, duration=120):
+        self.message = text
+        self.message_timer = duration
 
-        if event.key == pygame.K_UP:
-            dx = -1
-        elif event.key == pygame.K_DOWN:
-            dx = 1
-        elif event.key == pygame.K_LEFT:
-            dy = -1
-        elif event.key == pygame.K_RIGHT:
-            dy = 1
-
-        if dx == 0 and dy == 0:
+    #-------------------------
+    def check_teleport(self):
+        if self.teleport_cooldown > 0:
             return
+
+        key = f"{int(self.player.x)},{int(self.player.y)}"
+
+        if key in self.teleports:
+            dest_x, dest_y = self.teleports[key]
+
+            self.player.x = dest_x
+            self.player.y = dest_y
+
+            self.prev_x = dest_x
+            self.prev_y = dest_y
+
+            self.teleport_cooldown = 100
+            self.set_message("Téléportation !")
+            self.sound.play("portal")
+
+    #----------------------------
+    # COLISION
+
+    def is_wall(self, x, y):
+        size = 0.9
+
+        checks = [
+            (x, y),
+            (x + size, y),
+            (x, y + size),
+            (x + size, y + size)
+        ]
+
+        for cx, cy in checks:
+            grid_x = int(cx)
+            grid_y = int(cy)
+
+            if (
+                grid_x < 0
+                or grid_x >= len(self.carte)
+                or grid_y < 0
+                or grid_y >= len(self.carte[0])
+            ):
+                return True
+
+            if self.carte[grid_x][grid_y] == "#":
+                return True
+
+        return False
+
+    # ---------------------------
+    # UPDATE POUR ETRE A SON ACTIF
+
+    def update(self):
+        if self.paused:
+            return
+        
+        self.glow_timer += 0.08
+        self.update_camera()
+
+        self.check_teleport()
+
+        
+        if self.message:
+            self.message_timer -= 1
+            if self.message_timer <= 0:
+                self.message = ""
+
+        if self.player.hp <= 0:
+            self.game_over = True
+
+        if self.teleport_cooldown > 0:
+            self.teleport_cooldown -= 1
+
+        keys = pygame.key.get_pressed()
+
+        dx = 0
+        dy = 0
+
+        if keys[pygame.K_UP]:
+            dx -= self.move_speed
+
+        if keys[pygame.K_DOWN]:
+            dx += self.move_speed
+
+        if keys[pygame.K_LEFT]:
+            dy -= self.move_speed
+
+        if keys[pygame.K_RIGHT]:
+            dy += self.move_speed
+
+        length = math.hypot(dx, dy)
+
+        if length > 0:
+            dx /= length
+            dy /= length
+
+        dx *= self.move_speed
+        dy *= self.move_speed
 
         new_x = self.player.x + dx
         new_y = self.player.y + dy
 
-        self.teleport_cooldown = 0
+        old_x = self.player.x
+        old_y = self.player.y
 
-    # -------------------------
-    # LIMITES
-        if not (0 <= new_x < len(self.carte) and 0 <= new_y < len(self.carte[0])):
-            return
-
-        case = self.carte[new_x][new_y]
 
         # -------------------------
-        # WIN (ARRIVEE)
+        # COLLISIONS
+
+        # axe X
+        if not self.is_wall(new_x, self.player.y):
+            self.player.x = new_x
+
+        # axe Y
+        if not self.is_wall(self.player.x, new_y):
+            self.player.y = new_y
+
+
+        grid_x = int(self.player.x)
+        grid_y = int(self.player.y)
+
+        case = self.carte[grid_x][grid_y]
+        
+        # -------------------------
+        # WIN
         if case == "A":
             self.player.x = new_x
             self.player.y = new_y
@@ -310,15 +425,10 @@ class Game:
             return
 
     # -------------------------
-    # MUR
-        if case == " ":
-            return
-
-    # -------------------------
     # COMBAT PRIORITAIRE
         if case in ["M", "X", "X2", "X3", "M2", "M3", "M4", "M5", "M6"]:
-            self.prev_x, self.prev_y = self.player.x, self.player.y
-            self.player.x, self.player.y = new_x, new_y
+            self.prev_x, self.prev_y = old_x, old_y
+            self.player.x, self.player.y = grid_x, grid_y
             self.launch_combat(case)
             return
 
@@ -331,62 +441,7 @@ class Game:
             self.sound.play("item_collect")
 
             if case not in self.non_consumable_tiles:
-                self.carte[new_x][new_y] = "C"
-
-    # -------------------------
-    # DEPLACEMENT (APRES INTERACTION)
-        self.player.x = new_x
-        self.player.y = new_y
-
-        self.check_teleport()
-
-    #--------------------------
-
-    def set_message(self, text, duration=120):
-        self.message = text
-        self.message_timer = duration
-
-    #-------------------------
-    def check_teleport(self):
-        if self.teleport_cooldown > 0:
-            return
-
-        key = f"{self.player.x},{self.player.y}"
-
-        if key in self.teleports:
-            dest_x, dest_y = self.teleports[key]
-
-            self.player.x = dest_x
-            self.player.y = dest_y
-
-            self.prev_x = dest_x
-            self.prev_y = dest_y
-
-            self.teleport_cooldown = 20
-            self.set_message("Téléportation !")
-            self.sound.play("portal")
-
-    # ---------------------------
-    # UPDATE POUR ETRE A SON ACTIF
-
-    def update(self):
-        if self.paused:
-            return
-        
-        self.glow_timer += 0.08
-        self.update_camera()
-
-        
-        if self.message:
-            self.message_timer -= 1
-            if self.message_timer <= 0:
-                self.message = ""
-
-        if self.player.hp <= 0:
-            self.game_over = True
-
-        if self.teleport_cooldown > 0:
-            self.teleport_cooldown -= 1
+                self.carte[grid_x][grid_y] = "C"
 
     #------------------------------
     # PASSER LE RELAIS A COMBATROOM
@@ -474,52 +529,68 @@ class Game:
         offset_x = (self.screen.get_width() - self.view_width * self.tile_size) // 2
         offset_y = (self.screen.get_height() - self.view_height * self.tile_size) // 2
 
-        self.offset_x = offset_x
-        self.offset_y = offset_y
-         # -------------------------
-         # MAP
- 
-        offset_x = (self.screen.get_width() - self.view_width * self.tile_size) // 2
-        offset_y = (self.screen.get_height() - self.view_height * self.tile_size) // 2
+        start_x = int(self.camera_x)
+        start_y = int(self.camera_y)
 
-        for i in range(self.camera_x, self.camera_x + self.view_height):
-            for j in range(self.camera_y, self.camera_y + self.view_width):
+        for i in range(start_x, start_x + self.view_height + 2):
+            for j in range(start_y, start_y + self.view_width + 2):
 
-                if 0 <= i < len(self.carte) and 0 <= j < len(self.carte[0]):
+                # IMPORTANT
+                if not (0 <= i < len(self.carte)):
+                    continue
 
-                    rect = pygame.Rect(
-                        (j - self.camera_y) * self.tile_size + offset_x,
-                        (i - self.camera_x) * self.tile_size + offset_y,
-                        self.tile_size,
-                        self.tile_size
-                    )
+                if not (0 <= j < len(self.carte[i])):
+                    continue
 
-                    case = self.carte[i][j]
+                rect = pygame.Rect(
+                    int((j - self.camera_y) * self.tile_size + offset_x),
+                    int((i - self.camera_x) * self.tile_size + offset_y),
+                    self.tile_size,
+                    self.tile_size
+                )
 
-                    # sol
-                    sol = self.map.get_image("C")
-                    if sol:
-                        self.screen.blit(sol, rect)
+                case = self.carte[i][j]
 
-                    # objet
-                    image = self.map.get_image(case)
-                    if case != "C" and image:
-                        self.screen.blit(image, rect)
+                # sol
+                sol = self.map.get_image("C")
+                if sol:
+                    self.screen.blit(sol, rect)
 
-                    # joueur
-                    if (i, j) == (self.player.x, self.player.y):
-                        self.screen.blit(self.images["J"], rect)
+                # objet
+                image = self.map.get_image(case)
+                if case != "C" and image:
+                    self.screen.blit(image, rect)
 
-                    # glow
-                    if case == "K":
-                        import math
-                        scale = 1.0 + 0.15 * math.sin(self.glow_timer)
-                        size = int(self.tile_size * scale)
+                # glow
+                if case == "K":
+                    import math
+                    scale = 1.0 + 0.15 * math.sin(self.glow_timer)
+                    size = int(self.tile_size * scale)
 
-                        glow_img = pygame.transform.scale(image, (size, size))
-                        glow_rect = glow_img.get_rect(center=rect.center)
+                    glow_img = pygame.transform.scale(image, (size, size))
+                    glow_rect = glow_img.get_rect(center=rect.center)
 
-                        self.screen.blit(glow_img, glow_rect)
+                    self.screen.blit(glow_img, glow_rect)
+
+        #---------------------------------------------------------------
+        # JOUEUR DRAW 
+
+        player_draw_x = int(
+            (self.player.y - self.camera_y) * self.tile_size + offset_x
+        )
+
+        player_draw_y = int(
+            (self.player.x - self.camera_x) * self.tile_size + offset_y
+        )
+
+        player_rect = pygame.Rect(
+            player_draw_x,
+            player_draw_y,
+            self.tile_size,
+            self.tile_size
+        )
+
+        self.screen.blit(self.images["J"], player_rect)
 
 
         # -------------------------
@@ -533,7 +604,7 @@ class Game:
 
         heart = pygame.transform.scale(self.images["heart"], (icon_size, icon_size))
         coin = pygame.transform.scale(self.images["coin"], (icon_size, icon_size))
-        bag = pygame.transform.scale(self.images["bag"], (icon_size, icon_size))
+        bag = pygame.transform.scale(self.images["bag"], (icon_size, icon_size))   # A REUTILISER
 
         # VIE
         self.screen.blit(heart, (x, y))
@@ -674,14 +745,6 @@ class Game:
 
         reset_text = small.render("RESET LEVEL", True, (255, 255, 255))
         self.screen.blit(reset_text, reset_text.get_rect(center=self.pause_reset_rect.center))
-        
-        mx, my = pygame.mouse.get_pos()
-
-        grid_x = (mx - self.offset_x) // self.tile_size + self.camera_x
-        grid_y = (my - self.offset_y) // self.tile_size + self.camera_y
-
-        debug = font.render(f"{grid_x},{grid_y}", True, (255, 255, 255))
-        self.screen.blit(debug, (10, 200))
 
 #-------------------------
 
