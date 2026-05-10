@@ -26,7 +26,14 @@ class Game:
         self.screen = screen
         self.level_id = level.get("id")
 
-        self.move_speed = 0.05
+        self.move_speed = 0.04
+
+        self.animations = {
+            "down": [],
+            "left": [],
+            "right": [],
+            "up": []
+        }
 
         self.offset_x = 0
         self.offset_y = 0
@@ -122,6 +129,93 @@ class Game:
                     "14": pygame.image.load(os.path.join(BASE_DIR, "assets/decors/zzatue_orb_guardian.png")).convert_alpha(),
                     
                 }
+        
+        #------------------------------------------------------------
+        # SHEET PLAYER
+
+        self.player_sheet = pygame.image.load(
+            "assets/joueur_sheet.png"
+        ).convert_alpha()
+
+        self.idle_sheet = pygame.image.load(
+            "assets/idle_sheet.png"
+        ).convert_alpha()
+
+        self.player_frames = []
+        self.idle_frames = []
+
+        frame_count = 10
+
+        #------------------------------------------------------------
+        # PLAYER SHEET
+
+        self.player_sheet = pygame.image.load(
+            "assets/joueur_sheet.png"
+        ).convert_alpha()
+
+        self.animations = {
+            "down": [],
+            "left": [],
+            "right": [],
+            "up": []
+        }
+
+        frame_width = self.player_sheet.get_width() // 4
+        frame_height = self.player_sheet.get_height() // 4
+
+        directions = ["down", "left", "right", "up"]
+
+        for row, direction in enumerate(directions):
+
+            for col in range(4):
+
+                frame = self.player_sheet.subsurface(
+                    (
+                        col * frame_width,
+                        row * frame_height,
+                        frame_width,
+                        frame_height
+                    )
+                )
+
+                self.animations[direction].append(frame)
+
+        #------------------------------------------------------------
+        # IDLE SHEET
+
+        self.idle_frames = []
+
+        frame_width = self.idle_sheet.get_width() // 4
+        frame_height = self.idle_sheet.get_height() // 4
+
+        directions = ["down", "left", "right", "up"]
+
+        self.idle_animations = {d: [] for d in directions}
+
+        for row, direction in enumerate(directions):
+            for col in range(4):
+                frame = self.idle_sheet.subsurface(
+                    (
+                        col * frame_width,
+                        row * frame_height,
+                        frame_width,
+                        frame_height
+                    )
+                )
+                self.idle_animations[direction].append(frame)
+
+        #------------------------------------------------------------
+        # ANIMATION
+
+        self.direction = "down"
+
+        self.player_frame_index = 0
+        self.player_anim_timer = 0
+        self.player_anim_speed = 8
+
+        self.current_frame = self.animations["down"][0]
+
+        #-------------------------------------------------------
         
         self.map = Map(level, self.images)
 
@@ -443,6 +537,45 @@ class Game:
             if case not in self.non_consumable_tiles:
                 self.carte[grid_x][grid_y] = "C"
 
+    # ------------------------------
+    # PLAYER IMAGES + DIRECTION
+        moving = dx != 0 or dy != 0
+
+        # direction
+        if dx < 0:
+            self.direction = "up"
+
+        elif dx > 0:
+            self.direction = "down"
+
+        elif dy < 0:
+            self.direction = "left"
+
+        elif dy > 0:
+            self.direction = "right"
+
+        # -------------------------
+        # ANIMATION PLAYER
+
+        if moving:
+            frames = self.animations[self.direction] 
+        else:
+            frames = self.idle_animations[self.direction] 
+
+    
+        self.player_anim_timer += 1
+
+        if self.player_anim_timer >= self.player_anim_speed:
+
+            self.player_anim_timer = 0
+
+            self.player_frame_index = (
+                self.player_frame_index + 1
+            ) % len(frames)
+
+
+        self.current_frame = frames[self.player_frame_index]
+
     #------------------------------
     # PASSER LE RELAIS A COMBATROOM
 
@@ -453,6 +586,7 @@ class Game:
         combat = CombatRoom(
             self.screen,
             self.player,
+            self.idle_animations,
             self.images,
             enemy,
             self.sound,
@@ -590,7 +724,14 @@ class Game:
             self.tile_size
         )
 
-        self.screen.blit(self.images["J"], player_rect)
+        frame = self.current_frame
+
+        scaled = pygame.transform.scale(
+            frame,
+            (self.tile_size * 1.2, self.tile_size * 1.2)
+        )
+
+        self.screen.blit(scaled, scaled.get_rect(center=player_rect.center))
 
 
         # -------------------------

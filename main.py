@@ -9,7 +9,7 @@ SAVE_FILE = "save.json"
 
 data = None
 
-if os.path.exists(SAVE_FILE):
+if os.path.exists(SAVE_FILE):   
     try:
         with open(SAVE_FILE, "r") as f:
             data = json.load(f)
@@ -66,7 +66,7 @@ def toggle_fullscreen():
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 #----------------------------------------------
-# DEFILER LES FRAME ET SCALER LES IMAGES DE FOND
+# FRAME
 
 menu_frames = []
 bg_folder = os.path.join(BASE_DIR, "assets/menu_bg")

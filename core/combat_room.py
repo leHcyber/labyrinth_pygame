@@ -4,10 +4,18 @@ from core.enemy import *
 from menu.music_menu import SoundManager
 
 class CombatRoom:
-    def __init__(self, screen, player, images, enemy, sound, game_map):
+    def __init__(self, screen, player, idle_animations, images, enemy, sound, game_map):
 
         self.screen = screen
         self.player = player
+
+        self.idle_animations = idle_animations
+        self.idle_index = 0
+        self.idle_timer = 0
+
+        self.player_flash_timer = 0
+        self.enemy_flash_timer = 0
+
         self.images = images
         self.sound = sound
         self.map = game_map
@@ -61,8 +69,8 @@ class CombatRoom:
         
         self.sound.play("envole")
 
-        player_pos = (180, self.screen.get_height() // 2)
-        enemy_pos = (580, self.screen.get_height() // 2)
+        player_pos = (180, self.screen.get_height() // 2 + 40)
+        enemy_pos = (580, self.screen.get_height() // 2 + 40)
 
         self.projectiles.append(
             Projectile(
@@ -86,8 +94,8 @@ class CombatRoom:
         
         self.sound.play("envole")
 
-        enemy_pos = (580, self.screen.get_height() // 2)
-        player_pos = (180, self.screen.get_height() // 2)
+        enemy_pos = (580, self.screen.get_height() // 2 + 40)
+        player_pos = (180, self.screen.get_height() // 2 + 40)
 
         self.projectiles.append(
             Projectile(
@@ -140,7 +148,7 @@ class CombatRoom:
             if not p.alive:
 
                 # -------------------------
-                # PROJECTILE DU JOUEUR + DAMAGE
+                # PROJECTILE JOUEUR + DAMAGE
 
                 if p.owner == "PLAYER":
 
@@ -148,6 +156,8 @@ class CombatRoom:
 
                     dmg = self.player.get_damage()
                     self.enemy.take_damage(dmg)
+
+                    self.enemy_flash_timer = 10
 
                     self.enemy_dmg = f"-{dmg}" if dmg > 0 else None
                     self.dmg_timer = 30
@@ -159,9 +169,10 @@ class CombatRoom:
 
                     self.turn = "ENEMY"
                     self.action_locked = False
+                    self.cooldown = 20
 
                 # -------------------------
-                # PROJECTILE DE L'ENNEMI + DAMAGE
+                # PROJECTILE ENNEMI + DAMAGE
 
                 elif p.owner == "ENEMY":
 
@@ -169,6 +180,8 @@ class CombatRoom:
 
                     dmg = self.enemy.get_damage()
                     self.player.take_damage(dmg)
+
+                    self.player_flash_timer = 10
 
                     self.player_dmg = f"-{dmg}" if dmg > 0 else None
                     self.dmg_timer = 30
@@ -179,6 +192,7 @@ class CombatRoom:
 
                     self.turn = "PLAYER"
                     self.action_locked = False
+                    self.cooldown = 20
 
                 self.projectiles.remove(p)
 
@@ -188,7 +202,7 @@ class CombatRoom:
     def draw(self):
 
         # -------------------------
-        # FOND COMBAT (FULL HD NET)
+        # FOND COMBAT
  
         bg = self.map.get_image("bg_combat")
 
@@ -233,7 +247,7 @@ class CombatRoom:
         player_title = self.font.render("PLAYER", True, (100, 200, 255))
         enemy_title = self.font.render(self.enemy.name, True, (255, 100, 100))
 
-        # fond bulle (taille fixe simple)
+        # fond bulle
         width = 305
         height = 160
 
@@ -253,7 +267,7 @@ class CombatRoom:
         self.screen.blit(enemy_title, (base_x + 110, base_y))
 
         # -------------------------
-        # COEURS JOUEUR (horizontal)
+        # COEURS JOUEUR
         for i in range(int(self.player.hp)):
 
             row = i // 5
@@ -268,7 +282,7 @@ class CombatRoom:
             )
 
         # -------------------------
-        # COEURS ENNEMI (horizontal)
+        # COEURS ENNEMI
         for i in range(int(self.enemy.hp)):
 
             row = i // 5
@@ -288,7 +302,7 @@ class CombatRoom:
         self.screen.blit(enemy_title, (base_x + 110, base_y))
 
         # -------------------------
-        # ICON BOSS (si boss)
+        # ICON BOSS
         if "Boss" in self.enemy.name and boss_icon:
             icon_size = 28
             icon = pygame.transform.scale(boss_icon, (icon_size, icon_size))
@@ -297,24 +311,44 @@ class CombatRoom:
 
         # -------------------------
         # JOUEUR
- 
-        player_img = self.images.get("J")
-        player_rect = None
 
-        if player_img:
-            scale = 0.9
+        if self.idle_animations and "down" in self.idle_animations:
+
+            frames = self.idle_animations["down"] 
+
+            self.idle_timer += 1
+
+            if self.idle_timer >= 8:
+                self.idle_timer = 0
+                self.idle_index = (self.idle_index + 1) % len(frames)
+
+            player_img = frames[self.idle_index]
+
+            scale = 5.0
+
             new_size = (
                 int(player_img.get_width() * scale),
                 int(player_img.get_height() * scale)
             )
 
             player_big = pygame.transform.scale(player_img, new_size)
-            player_rect = player_big.get_rect(center=(180, self.screen.get_height() // 2 + 40))
+
+            player_rect = player_big.get_rect(
+                center=(180, self.screen.get_height() // 2 + 40)
+            )
 
             self.screen.blit(player_big, player_rect)
 
+            if self.player_flash_timer > 0:
+                flash = player_big.copy()
+                red = pygame.Surface(flash.get_size(), pygame.SRCALPHA)
+                red.fill((255, 0, 0, 120))
+                flash.blit(red, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+                self.screen.blit(flash, player_rect)
+                self.player_flash_timer -= 1
+
         else:
-            pygame.draw.circle(self.screen, (0, 200, 255), (180, self.screen.get_height() // 2), 30)
+            pygame.draw.circle(self.screen,(0, 200, 255),(180, self.screen.get_height() // 2),30)
 
         # -------------------------
         # ENNEMI
@@ -324,7 +358,7 @@ class CombatRoom:
         enemy_rect = None
 
         if enemy_img:
-            scale = 1.2
+            scale = 1.4
             new_size = (
                 int(enemy_img.get_width() * scale),
                 int(enemy_img.get_height() * scale)
@@ -335,6 +369,14 @@ class CombatRoom:
 
             self.screen.blit(enemy_big, enemy_rect)
 
+            if self.enemy_flash_timer > 0:
+                flash = enemy_big.copy()
+                red = pygame.Surface(flash.get_size(), pygame.SRCALPHA)
+                red.fill((255, 0, 0, 120))
+                flash.blit(red, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+                self.screen.blit(flash, enemy_rect)
+                self.enemy_flash_timer -= 1
+
         else:
             pygame.draw.circle(self.screen, (255, 80, 80), (580, self.screen.get_height() // 2), 30)
 
@@ -343,15 +385,12 @@ class CombatRoom:
     
         if self.dmg_timer > 0:
 
-            # décrémente timer
             self.dmg_timer -= 1
 
-            # reset automatique quand fini
             if self.dmg_timer == 0:
                 self.player_dmg = None
                 self.enemy_dmg = None
 
-            # dégâts ennemi (affiché au dessus de l'ennemi)
             if self.enemy_dmg and enemy_rect:
                 dmg_surf = self.font.render(self.enemy_dmg, True, (255, 50, 50))
                 dmg_rect = dmg_surf.get_rect(midbottom=(
@@ -386,7 +425,7 @@ class CombatRoom:
         self.screen.blit(ui, ui_rect)
 
         # -------------------------
-        # MESSAGE PLAYER (UNIQUE)
+        # MESSAGE PLAYER 
 
         if self.player.message:
 
@@ -410,7 +449,6 @@ class CombatRoom:
             else:
                 self.screen.blit(msg_surf, (x, y))
 
-            # timer
             self.player.message_timer -= 1
             if self.player.message_timer <= 0:
                 self.player.message = ""

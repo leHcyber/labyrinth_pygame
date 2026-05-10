@@ -36,13 +36,13 @@ class Enemy:
 
 class EnemyFactory:
     DATA = {
-        "M": ("Monstre", 4, 1),
+        "M": ("Monstre", 7, 2),
         "M2": ("Monstre 2", 4, 1),
         "M3": ("Monstre 3", 5, 1),
         "M4": ("Monstre 4", 4, 2),
         "M5": ("Monstre 5", 6, 1),
         "M6": ("Monstre 6", 7, 2),
-        "X": ("Boss", 6, 2),
+        "X": ("Boss", 9, 2),
         "X2": ("Boss 2", 8, 2),
         "X3": ("Boss 3", 13, 2),
     }
