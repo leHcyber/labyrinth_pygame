@@ -34,7 +34,7 @@ PLAY_ASCII = [
 def draw_title(screen):
     font = pygame.font.SysFont("consolas", 10, bold=True)
 
-    y = 40
+    y = 55
 
     for line in TITLE_ASCII:
         shadow = font.render(line, True, (0, 0, 0))
@@ -63,7 +63,7 @@ def draw_ascii_button(screen, ascii_art, y, selected, hover):
 
     x = screen.get_width() // 2
 
-    line_height = 16
+    line_height = 15
     total_height = len(ascii_art) * line_height
 
     start_y = y
@@ -95,15 +95,13 @@ def draw_menu(screen, selected):
     quit_rect = pygame.Rect(0, 0, 0, 0)
 
     # ------------------------------
-    # 1er pass juste pour récupérer les rects
+ 
     play_rect = draw_ascii_button(screen, PLAY_ASCII, 310, selected == 0, False)
     quit_rect = draw_ascii_button(screen, QUIT_ASCII, 375, selected == 2, False)
 
-    # hover calculé APRÈS
     play_hover = play_rect.collidepoint(mouse)
     quit_hover = quit_rect.collidepoint(mouse)
 
-    # redraw FINAL
     play_rect = draw_ascii_button(screen, PLAY_ASCII, 310, selected == 0, play_hover)
     quit_rect = draw_ascii_button(screen, QUIT_ASCII, 375, selected == 2, quit_hover)
 
@@ -121,7 +119,7 @@ def draw_menu(screen, selected):
     pygame.draw.rect(screen, level_color, level_rect, border_radius=8)
     pygame.draw.rect(screen, (0, 0, 0), level_rect, 2, border_radius=8)
 
-    level_text = font.render("NIVEAUX", True, (255, 255, 255))
+    level_text = font.render("ONLINE", True, (255, 255, 255))
     screen.blit(level_text, level_text.get_rect(center=level_rect.center))
 
     #-------------------

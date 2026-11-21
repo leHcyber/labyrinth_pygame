@@ -29,4 +29,8 @@ SETTINGS_TEXT = [
     "Vous pouvez aussi sauvegarder manuellement",
     "dans le menu pause sur le bouton 'Sauvegarder'",
     "",
+    "OPTION VOLUME :",
+    "flèche du haut pour augmenter",
+    "et flèche du bas pour diminuer",
+    "",
 ]

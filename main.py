@@ -20,13 +20,15 @@ from menu.draw_menu import draw_menu
 from menu.text_menu import RULES_TEXT, SETTINGS_TEXT
 from game.engine import Game
 
+from menu.online_menu import draw_online_levels
+from network.client import run_chat
+
 from game.map import Map
 from menu.music_menu import MusicManager, SoundManager
 
 from menu.scene_menu import (
     draw_background,
     draw_text_screen,
-    draw_online_levels,
     draw_offline_levels
 )
 
@@ -39,6 +41,7 @@ current_state_music = None
 selected = -1
 running = True
 scroll_offset = 0
+online_buttons = {}
 
 # -------------------------
 # SET UP LA FENETRE
@@ -219,11 +222,20 @@ while running:
     elif menu_state == "settings":
         draw_text_screen(screen, "PARAMETRES", SETTINGS_TEXT, scroll_offset, WIDTH, HEIGHT)
 
-    elif menu_state == "levels":
-        draw_online_levels(screen, WIDTH, HEIGHT)
+    elif menu_state == "online_levels":
+        mouse = pygame.mouse.get_pos()
+        online_buttons = draw_online_levels(screen, WIDTH, HEIGHT, mouse)
 
     elif menu_state == "offline_levels":
         level_buttons = draw_offline_levels(screen, LEVELS, mouse, WIDTH, HEIGHT)
+
+    elif menu_state == "chat":
+        screen.fill((20, 20, 30))
+
+        font = pygame.font.SysFont("consolas", 30)
+        txt = font.render("CHAT MODE - loading...", True, (0, 200, 255))
+
+        screen.blit(txt, (WIDTH//2 - txt.get_width()//2, HEIGHT//2))
 
     #---------------------
     # EVENTS
@@ -233,17 +245,22 @@ while running:
         if e.type == pygame.QUIT:
             running = False
 
-        #--------------------------
+        # --------------------------
         # GLOBAL KEYS
-
         if e.type == pygame.KEYDOWN:
 
             if e.key == pygame.K_F11:
                 toggle_fullscreen()
 
+            if e.key == pygame.K_UP:
+                music.volume_up()
+
+            if e.key == pygame.K_DOWN:
+                music.volume_down()
+
             if e.key == pygame.K_ESCAPE:
 
-                if menu_state in ["rules", "settings", "levels"]:
+                if menu_state in ["rules", "settings", "online_levels"]:
                     menu_state = "main"
                     scroll_offset = 0
 
@@ -251,8 +268,7 @@ while running:
                     menu_state = "main"
 
         # -----------------------
-        # MAIN MENU TOUCHE
-
+        # MAIN MENU
         if menu_state == "main":
 
             if e.type == pygame.KEYDOWN:
@@ -274,7 +290,6 @@ while running:
                     elif selected == 2:
                         running = False
 
-
             elif e.type == pygame.MOUSEBUTTONDOWN:
 
                 if play_r.collidepoint(e.pos):
@@ -283,7 +298,7 @@ while running:
 
                 elif level_r.collidepoint(e.pos):
                     selected = 1
-                    menu_state = "levels"
+                    menu_state = "online_levels"
 
                 elif info_r.collidepoint(e.pos):
                     selected = 1
@@ -296,7 +311,19 @@ while running:
                 elif quit_r.collidepoint(e.pos):
                     selected = 2
                     running = False
-                    
+
+        # -----------------------
+        # ONLINE MENU
+        elif menu_state == "online_levels":
+
+            if e.type == pygame.MOUSEBUTTONDOWN:
+
+                if "chat" in online_buttons and online_buttons["chat"].collidepoint(e.pos):
+
+                    result = run_chat(screen, WIDTH, HEIGHT)
+
+                    if result == "menu":
+                        menu_state = "online_levels"
 
         #-------------------------
         # MENU OFFLINE TOUCHE

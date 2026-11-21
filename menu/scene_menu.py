@@ -46,30 +46,6 @@ def draw_text_screen(screen, title, lines, scroll_offset, WIDTH, HEIGHT):
     )
     screen.blit(hint, (WIDTH // 2 - hint.get_width() // 2, HEIGHT - 510))
 
-
-# -------------------------
-# ONLINE LEVELS (SOON)
-
-def draw_online_levels(screen, WIDTH, HEIGHT):
-
-    screen.fill((10, 10, 20))
-
-    font = pygame.font.SysFont("consolas", 30, bold=True)
-
-    title = font.render("ONLINE LEVELS (SOON)", True, (0, 200, 255))
-    screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 80))
-
-    msg = pygame.font.SysFont("consolas", 20).render(
-        "crée, édit et joue a des labyrinthe en ligne !", True, (180, 180, 180)
-    )
-    screen.blit(msg, (WIDTH // 2 - msg.get_width() // 2, 200))
-
-    hint = pygame.font.SysFont("consolas", 18).render(
-        "ESC pour retour en arrière", True, (120, 120, 120)
-    )
-    screen.blit(hint, (WIDTH // 2 - hint.get_width() // 2, HEIGHT - 80))
-
-
 # -------------------------
 # OFFLINE LEVELS
 

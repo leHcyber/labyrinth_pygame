@@ -8,6 +8,9 @@ class MusicManager:
         self.base_dir = base_dir
         self.current = None
 
+        self.volume = 0
+        pygame.mixer.music.set_volume(self.volume)
+
     def play(self, path):
         if self.current == path:
             return
@@ -19,6 +22,16 @@ class MusicManager:
         pygame.mixer.music.stop()
         pygame.mixer.music.load(full_path)
         pygame.mixer.music.play(-1)
+
+    def volume_up(self):
+        self.volume = min(1.0, self.volume + 0.1)
+        pygame.mixer.music.set_volume(self.volume)
+        print("Volume :", self.volume)
+
+    def volume_down(self):
+        self.volume = max(0.0, self.volume - 0.1)
+        pygame.mixer.music.set_volume(self.volume)
+        print("Volume :", self.volume)
 
 import pygame
 

@@ -240,7 +240,7 @@ class Game:
 
         self.font = pygame.font.SysFont("consolas", 20)
 
-        # scale images sans bug
+        # scale
         for key in self.images:
             if key not in ["COMBAT_BG", "bubble", "bubble2"]:
                 img = self.images[key]
@@ -362,7 +362,7 @@ class Game:
         if self.game_won:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
-                    return "main"  # ou menu, ou restart
+                    return "main" 
             return
 
         if event.key == pygame.K_p:
@@ -669,7 +669,6 @@ class Game:
         for i in range(start_x, start_x + self.view_height + 2):
             for j in range(start_y, start_y + self.view_width + 2):
 
-                # IMPORTANT
                 if not (0 <= i < len(self.carte)):
                     continue
 
@@ -735,8 +734,7 @@ class Game:
 
 
         # -------------------------
-        # HUD (TOUJOURS EN DERNIER)
-        # BULLE STAT
+        # HUD + BULLE MESSAGE + INVENTAIRE
 
         x, y = 20, 20
         spacing = 100
@@ -760,7 +758,7 @@ class Game:
         # INVENTAIRE
         if self.show_inventory:
 
-            # taille max (80% de l'écran)
+            # taille
             max_w = int(self.screen.get_width() * 0.8)
             max_h = int(self.screen.get_height() * 0.8)
 
@@ -777,7 +775,7 @@ class Game:
             self.screen.blit(inv_img, inv_rect)
 
             # -------------------------
-            # GRID SETTINGS (avec scale appliqué UNE fois)
+            # GRID SETTINGS
             cols = 8
             rows = 5
 
@@ -822,6 +820,7 @@ class Game:
             x, y = 350, 30
 
             if bubble:
+
                 # taille dynamique de la bulle
                 padding_x = 40
                 padding_y = 30
@@ -844,6 +843,7 @@ class Game:
 
         # -------------------------
         # PAUSE OVERLAY
+        
         if self.paused:
             self.draw_pause_menu()
 
