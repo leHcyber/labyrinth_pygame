@@ -42,7 +42,7 @@ source menv/bin/activate
 
 ##  Installation des dépendances
 
-(y'a que pygame mdrr)
+pip install pygame_gui
 
 pip install pygame
 
