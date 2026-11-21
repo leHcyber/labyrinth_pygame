@@ -12,8 +12,8 @@ from network.account import NAME_CHANGE_DELAY
 pygame.init()
 
 # ---------------- SOCKET
-HOST = "192.168.1.88"
-PORT = 5555
+HOST = "hopper.proxy.rlwy.net"
+PORT = 13581
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -177,8 +177,10 @@ def connect():
 
     try:
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client.settimeout(10)
         client.connect((HOST, PORT))
-        client.send(f"CONNECT|{username}\n".encode("utf-8"))
+        client.sendall(f"CONNECT|{username}\n".encode("utf-8"))
+        client.settimeout(None)
 
     except Exception as e:
         print("Connection error:", e)
